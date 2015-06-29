@@ -1,0 +1,38 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.4.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'spring-boot'
+
+jar {
+     baseName = 'fetch-users'
+     version =  '1.0'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter")
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework:spring-web:4.1.4.RELEASE")
+    compile("com.fasterxml.jackson.core:jackson-databind:2.5.0")
+    compile 'com.netflix.rxjava:rxjava-core:0.20.7'
+    compile 'com.twilio.sdk:twilio-java-sdk:3.4.5'
+    compile("org.projectlombok:lombok:1.16.2")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
