@@ -6,7 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+
+import com.firebase.client.Firebase;
 
 @Configuration
 @SpringBootApplication
@@ -16,11 +17,10 @@ public class Application{
 	
 
 	@Bean
-	RestTemplate getRestTemplate(){
-		return new RestTemplate();
+	Firebase firebase(){
+		return new Firebase("https://torrid-heat-237.firebaseio.com/Users-sagar");
 	}
 
-	
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class);
 
