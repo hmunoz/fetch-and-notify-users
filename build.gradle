@@ -31,7 +31,8 @@ dependencies {
     compile 'com.netflix.rxjava:rxjava-core:0.20.7'
     compile 'com.twilio.sdk:twilio-java-sdk:3.4.5'
     compile("org.projectlombok:lombok:1.16.2")
-    compile 'com.firebase:firebase-client:1.0.18'
+    //compile 'com.firebase:firebase-client:1.0.18'
+    compile 'com.firebase:firebase-client-jvm:2.3.1'
     compile 'javax.mail:mail:1.4.7'
 }
 

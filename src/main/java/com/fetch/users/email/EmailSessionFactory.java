@@ -17,16 +17,22 @@ public class EmailSessionFactory {
 	@Value("${mail.smtp.host}")
 	private String smtpHost;
 	
-	@Value("${mail.smtp.starttls.enable}")
-	private String smtpStarttlsEnable;
+	@Value("${mail.smtp.socketFactory.port}")
+	private String smtpSocketFactoryPort;
 	
-	@Value("${mail.smtp.auth}")
-	private boolean smtpAuth;
+	@Value("${mail.smtp.socketFactory.class}")
+	private String smtpSocketFactoryClass;
+	
+	@Value("${mail.smtps.auth}")
+	private String smtpsAuth;
 	
 	@Value("${mail.smtp.port}")
-	private int smtpPort;
+	private String smtpPort;
 	
-	@Value("${username}")
+	@Value("${mail.debug}")
+	private String setDebug;
+	
+	@Value("${emailId}")
 	private String username;
 	
 	@Value("${password}")
@@ -42,12 +48,19 @@ public class EmailSessionFactory {
 		props.put("mail.smtp.port", smtpPort);
 		props.put("mail.debug", "true");*/
 		
-		props.put("mail.smtp.host", "smtp.gmail.com");
+		/*props.put("mail.smtp.host", "smtp.gmail.com");
 		props.put("mail.smtp.socketFactory.port", "465");
 		props.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
 		props.put("mail.smtps.auth", "true");
 		props.put("mail.smtp.port", "465");
-		props.put("mail.debug", "false");
+		props.put("mail.debug", "true");*/
+		
+		props.put("mail.smtp.host", smtpHost);
+		props.put("mail.smtp.socketFactory.port", smtpSocketFactoryPort);
+		props.put("mail.smtp.socketFactory.class",smtpSocketFactoryClass);
+		props.put("mail.smtps.auth", smtpsAuth);
+		props.put("mail.smtp.port", smtpPort);
+		props.put("mail.debug", setDebug);
 
 		Session session = Session.getDefaultInstance(props,  new javax.mail.Authenticator() {
 			protected PasswordAuthentication getPasswordAuthentication() {

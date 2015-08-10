@@ -15,12 +15,6 @@ import com.firebase.client.Firebase;
 @EnableAutoConfiguration
 public class Application{
 	
-
-	@Bean
-	Firebase firebase(){
-		return new Firebase("https://torrid-heat-237.firebaseio.com/Users-sagar");
-	}
-
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class);
 
