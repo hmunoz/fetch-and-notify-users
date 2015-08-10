@@ -154,7 +154,6 @@ public class FetchNotifyUsersService {
 			emailMessage.setSubject("Test- Genius Weekly Info!");
 			emailMessage.setText(message.toString());
 			Transport transport = session.getTransport("smtp");
-//			transport.connect();
 			transport.connect(emailId, password);
 			transport.sendMessage(emailMessage, emailMessage.getAllRecipients());
 			transport.close();

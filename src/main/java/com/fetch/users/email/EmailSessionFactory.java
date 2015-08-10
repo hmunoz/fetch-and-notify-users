@@ -42,18 +42,6 @@ public class EmailSessionFactory {
 	Session emailSession() {
 		
 		Properties props = new Properties();
-		/*props.put("mail.smtp.host", smtpHost);
-		props.put("mail.smtp.starttls.enable", smtpStarttlsEnable);
-		props.put("mail.smtp.auth", smtpAuth);
-		props.put("mail.smtp.port", smtpPort);
-		props.put("mail.debug", "true");*/
-		
-		/*props.put("mail.smtp.host", "smtp.gmail.com");
-		props.put("mail.smtp.socketFactory.port", "465");
-		props.put("mail.smtp.socketFactory.class","javax.net.ssl.SSLSocketFactory");
-		props.put("mail.smtps.auth", "true");
-		props.put("mail.smtp.port", "465");
-		props.put("mail.debug", "true");*/
 		
 		props.put("mail.smtp.host", smtpHost);
 		props.put("mail.smtp.socketFactory.port", smtpSocketFactoryPort);

@@ -50,7 +50,6 @@ public class LoginService {
 					log.info("Logging out the user......");
 					ref.unauth();
 				} catch (InterruptedException | ExecutionException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
