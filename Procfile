@@ -1,0 +1,1 @@
+web: java -Dserver.port=$PORT -jar build/libs/fetch-users-1.0.jar

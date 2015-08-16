@@ -69,7 +69,7 @@ public class FetchNotifyUsersService {
 	
 	private Func1<? super User, Boolean> userToBeFollowedUp = (user) -> {
 		LocalDate scannedOrMetDay = user.isScanTaken() ? LocalDate.parse(user.getScannedDate(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
-		return getDateDifference.apply(scannedOrMetDay) % 5 == 0;
+		return getDateDifference.apply(scannedOrMetDay) % 7 == 0;
 
 	};
 
@@ -103,7 +103,7 @@ public class FetchNotifyUsersService {
 				.scan(userWeeklyFollowUpMap, ((map, user) -> {
 					try{
 						LocalDate scannedOrMetDay = user.isScanTaken() ? LocalDate.parse(user.getScannedDate(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
-						AtomicInteger weekNumber = new AtomicInteger(getDateDifference.apply(scannedOrMetDay)/5);
+						AtomicInteger weekNumber = new AtomicInteger(getDateDifference.apply(scannedOrMetDay)/7);
 						map.computeIfAbsent(weekNumber.get(), list-> new CopyOnWriteArrayList<User>()).add(user);
 					}
 					catch(Exception e){
@@ -125,19 +125,32 @@ public class FetchNotifyUsersService {
 
 	private void composeEmailMessage(
 			ConcurrentHashMap<Integer, CopyOnWriteArrayList<User>> userWeeklyFollowUpMap) {
-		try{
-		userWeeklyFollowUpMap.forEach(4, (weekNumber, user) -> {
-			message = message.append("Week " + weekNumber + " follow ups " + "\n");
-			user.forEach(u -> {
-				message.append("Name:" + u.getGeniusname() + "\n"
-						+ "Scan Taken:" + Boolean.toString(u.isScanTaken()) + "\n"
-						+ "Scan Taken Or Met Date:" + (u.isScanTaken() ? u
-						.getScannedDate() : u.getMeetingDay()) + "\n"
-						+ "Comments:" + u.getComments()+usersDelimiter);
-			});
-			message.append(weeksDelimiter);
-		});
-		}catch(Exception e){
+		try {
+			if (userWeeklyFollowUpMap.isEmpty())
+				message.append("A happy day today.. No follow ups!!");
+			else {
+				userWeeklyFollowUpMap.forEach(
+						4,
+						(weekNumber, user) -> {
+							message = message.append("Week " + weekNumber
+									+ " follow ups " + "\n");
+							user.forEach(u -> {
+								message.append("Name:"
+										+ u.getGeniusname()
+										+ "\n"
+										+ "Scan Taken:"
+										+ Boolean.toString(u.isScanTaken())
+										+ "\n"
+										+ "Scan Taken Or Met Date:"
+										+ (u.isScanTaken() ? u.getScannedDate()
+												: u.getMeetingDay()) + "\n"
+										+ "Comments:" + u.getComments()
+										+ usersDelimiter);
+							});
+							message.append(weeksDelimiter);
+						});
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}

@@ -33,7 +33,7 @@ public class LoginService {
 	
 	private static final Logger log = LoggerFactory.getLogger(LoginService.class);
 	
-	@Scheduled(cron="0 20 22 * * *")
+	@Scheduled(cron="0 20 18 * * *")
 	public void loginService(){
 		ref.authWithPassword(email, fbPassword, new AuthResultHandler() {
 			
