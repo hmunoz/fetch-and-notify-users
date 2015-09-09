@@ -33,7 +33,8 @@ public class LoginService {
 	
 	private static final Logger log = LoggerFactory.getLogger(LoginService.class);
 	
-	@Scheduled(cron="0 20 18 * * *")
+//	@Scheduled(cron="0 20 18 * * *")
+	@Scheduled(fixedDelay=20000)
 	public void loginService(){
 		ref.authWithPassword(email, fbPassword, new AuthResultHandler() {
 			
@@ -47,8 +48,6 @@ public class LoginService {
 				log.info("user logged.. FetchService should have been called");
 				try {
 					fetchUsersNotfyService.fetchNotifyUsers();
-					log.info("Logging out the user......");
-					ref.unauth();
 				} catch (InterruptedException | ExecutionException e) {
 					e.printStackTrace();
 				}
