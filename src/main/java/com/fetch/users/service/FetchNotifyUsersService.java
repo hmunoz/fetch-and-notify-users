@@ -68,7 +68,7 @@ public class FetchNotifyUsersService {
 	private final String usersDelimiter = "\n" + "*********************************************************" + "\n";
 	
 	private Func1<? super User, Boolean> userToBeFollowedUp = (user) -> {
-		LocalDate scannedOrMetDay = user.isScanTaken() ? LocalDate.parse(user.getScannedDate(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
+		LocalDate scannedOrMetDay = user.isScantakenyes() ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
 		return getDateDifference.apply(scannedOrMetDay) % 7 == 0;
 
 	};
@@ -102,7 +102,7 @@ public class FetchNotifyUsersService {
 				.filter(userToBeFollowedUp)
 				.scan(userWeeklyFollowUpMap, ((map, user) -> {
 					try{
-						LocalDate scannedOrMetDay = user.isScanTaken() ? LocalDate.parse(user.getScannedDate(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
+						LocalDate scannedOrMetDay = user.isScantakenyes() ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
 						AtomicInteger weekNumber = new AtomicInteger(getDateDifference.apply(scannedOrMetDay)/7);
 						map.computeIfAbsent(weekNumber.get(), list-> new CopyOnWriteArrayList<User>()).add(user);
 					}
@@ -139,12 +139,12 @@ public class FetchNotifyUsersService {
 										+ u.getGeniusname()
 										+ "\n"
 										+ "Scan Taken:"
-										+ Boolean.toString(u.isScanTaken())
+										+ Boolean.toString(u.isScantakenyes())
 										+ "\n"
 										+ "Scan Taken Or Met Date:"
-										+ (u.isScanTaken() ? u.getScannedDate()
+										+ (u.isScantakenyes() ? u.getGeniusdos()
 												: u.getMeetingDay()) + "\n"
-										+ "Comments:" + u.getComments()
+										+ "Comments:" + u.getGeniuspreviousremarks()
 										+ usersDelimiter);
 							});
 							message.append(weeksDelimiter);
