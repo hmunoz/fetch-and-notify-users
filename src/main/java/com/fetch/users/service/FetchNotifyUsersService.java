@@ -4,7 +4,9 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -18,12 +20,21 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fetch.users.domain.FranchiseOwner;
+import com.fetch.users.domain.UserOld;
+import com.fetch.users.repository.FranchiseRepository;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.elasticsearch.action.index.IndexResponse;
+import org.elasticsearch.client.Client;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
 
+import org.springframework.web.client.RestTemplate;
 import rx.Observable;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
@@ -54,8 +65,23 @@ public class FetchNotifyUsersService {
 	
 	@Autowired
 	Firebase ref;
-	
-	private LocalDate now = null;
+
+	@Value("${firebase.ref.url}")
+	private String firebaseRefUrl;
+
+    /*@Autowired
+    Client client;*/
+
+    @Autowired
+    ObjectMapper mapper;
+
+	@Autowired
+	FranchiseRepository repo;
+
+	/*@Autowired
+	RestTemplate restTemplate;*/
+
+    private LocalDate now = null;
 	
 	private final Function<LocalDate,Integer> getDateDifference = (date) -> Period.between(date, now).getDays();
 
@@ -66,17 +92,110 @@ public class FetchNotifyUsersService {
 	private final String weeksDelimiter = "\n" + "#########################################################" + "\n";
 	
 	private final String usersDelimiter = "\n" + "*********************************************************" + "\n";
+
+	private String url = "http://localhost:9200/franchisees/anurag/customers/";
+
+	Map<String, String> vars = new HashMap<String, String>();
 	
-	private Func1<? super User, Boolean> userToBeFollowedUp = (user) -> {
-		LocalDate scannedOrMetDay = user.isScantakenyes() ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
+	/*private Func1<? super User, Boolean> userToBeFollowedUp = (user) -> {
+		LocalDate scannedOrMetDay = user.getScantakenyes() ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMetdate(),dateformat);
 		return getDateDifference.apply(scannedOrMetDay) % 7 == 0;
 
-	};
+	};*/
 
-	public void fetchNotifyUsers() throws InterruptedException, ExecutionException {
+	public void scrubData(){
+		Map<String,UserOld> usersFromFB = new HashMap<>();
+		ref.addListenerForSingleValueEvent(new ValueEventListener() {
+			@Override
+			public void onDataChange(DataSnapshot snapshot) {
+				for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+					usersFromFB.put(postSnapshot.getKey(), postSnapshot.getValue(UserOld.class));
+				}
+				scrubData(usersFromFB);
+			}
 
+			@Override
+			public void onCancelled(FirebaseError firebaseError) {
+				log.error("The read failed: "
+						+ firebaseError.getMessage());
+			}
+		});
+
+	}
+
+	private void scrubData(Map<String,UserOld> usersFromFB){
+		usersFromFB.keySet().stream().forEach(key->{
+			String userUrl = firebaseRefUrl.concat(key);
+			Firebase userRef = new Firebase(userUrl);
+			userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+				@Override
+				public void onDataChange(DataSnapshot snapshot) {
+					for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+						UserOld oldUser = postSnapshot.getValue(UserOld.class);
+						System.out.println("name--->"+oldUser.getGeniusname());
+
+					}
+				}
+
+				@Override
+				public void onCancelled(FirebaseError firebaseError) {
+					log.error("The read failed: "
+							+ firebaseError.getMessage());
+				}
+			});
+		});
+
+	}
+
+	public void postDataToELK(){
+        List<User> usersFromFB = new ArrayList<>();
+        now = LocalDate.now();
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+			@Override
+			public void onDataChange(DataSnapshot snapshot) {
+				for (DataSnapshot postSnapshot : snapshot.getChildren()) {
+					usersFromFB.add(postSnapshot.getValue(User.class));
+				}
+				postDataToELK(usersFromFB);
+			}
+
+			@Override
+			public void onCancelled(FirebaseError firebaseError) {
+				log.error("The read failed: "
+						+ firebaseError.getMessage());
+			}
+		});
+		
+	}
+
+    private void postDataToELK(List<User> usersFromFB) {
+       /* usersFromFB.keySet().stream().forEach(key->{
+			*//*url = url.concat(key);
+			restTemplate.postForEntity(url,usersFromFB.get(key),User.class);*//*
+            try {
+                IndexResponse response = client.prepareIndex("franchises", "anurag",key)
+                        .setSource(mapper.writeValueAsBytes(usersFromFB.get(key))).execute()
+                        .actionGet();
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+        });
+*/
+//		System.out.println("USers>>"+usersFromFB);
+		FranchiseOwner owner = new FranchiseOwner();
+		owner.setId(1);
+		owner.setName("Anurag");
+		owner.setUsers(usersFromFB);
+		System.out.println(repo.findOne(1));
+		try {
+			repo.save(owner);
+		}catch (Exception e){
+			System.out.println(e.getMessage());
+		}
+    }
+
+    /*public void fetchNotifyUsers() throws InterruptedException, ExecutionException {
 		List<User> usersFromFB = new ArrayList<>();
-		now = LocalDate.now();
 		ref.addListenerForSingleValueEvent(new ValueEventListener() {
 			@Override
 			public void onDataChange(DataSnapshot snapshot) {
@@ -93,16 +212,16 @@ public class FetchNotifyUsersService {
 			}
 		});
 		
-	}
+	}*/
 
-	private void getUsersAndSendEmail(List<User> users) {
+	/*private void getUsersAndSendEmail(List<User> users) {
 		ConcurrentHashMap<Integer, CopyOnWriteArrayList<User>> userWeeklyFollowUpMap = new ConcurrentHashMap<>();
 		Observable
 				.from(users)
 				.filter(userToBeFollowedUp)
 				.scan(userWeeklyFollowUpMap, ((map, user) -> {
 					try{
-						LocalDate scannedOrMetDay = user.isScantakenyes() ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMeetingDay(),dateformat);
+						LocalDate scannedOrMetDay = Boolean.valueOf(user.getScantakenyes()) ? LocalDate.parse(user.getGeniusdos(),dateformat) : LocalDate.parse(user.getMetdate(),dateformat);
 						AtomicInteger weekNumber = new AtomicInteger(getDateDifference.apply(scannedOrMetDay)/7);
 						map.computeIfAbsent(weekNumber.get(), list-> new CopyOnWriteArrayList<User>()).add(user);
 					}
@@ -121,9 +240,9 @@ public class FetchNotifyUsersService {
 							ref.unauth();
 						});
 
-	}
+	}*/
 
-	private void composeEmailMessage(
+	/*private void composeEmailMessage(
 			ConcurrentHashMap<Integer, CopyOnWriteArrayList<User>> userWeeklyFollowUpMap) {
 		try {
 			if (userWeeklyFollowUpMap.isEmpty())
@@ -139,11 +258,10 @@ public class FetchNotifyUsersService {
 										+ u.getGeniusname()
 										+ "\n"
 										+ "Scan Taken:"
-										+ Boolean.toString(u.isScantakenyes())
+										+ u.getScantakenyes()
 										+ "\n"
 										+ "Scan Taken Or Met Date:"
-										+ (u.isScantakenyes() ? u.getGeniusdos()
-												: u.getMeetingDay()) + "\n"
+										+ (Boolean.valueOf(u.getScantakenyes()) ? u.getGeniusdos() : u.getMetdate()) + "\n"
 										+ "Comments:" + u.getGeniuspreviousremarks()
 										+ usersDelimiter);
 							});
@@ -153,9 +271,9 @@ public class FetchNotifyUsersService {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 	
-	private void sendEmail(Session session) {
+	/*private void sendEmail(Session session) {
 		try {
 			Message emailMessage = new MimeMessage(session);
 			emailMessage.setFrom(new InternetAddress(emailId));
@@ -177,7 +295,7 @@ public class FetchNotifyUsersService {
 			e.printStackTrace();
 		}
 
-	}
+	}*/
 	 
 
 }

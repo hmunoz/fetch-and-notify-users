@@ -34,8 +34,8 @@ public class LoginService {
 	private static final Logger log = LoggerFactory.getLogger(LoginService.class);
 	
 //	@Scheduled(cron="0 20 18 * * *")
-	@Scheduled(fixedDelay=20000)
-	public void loginService(){
+//	@Scheduled(fixedDelay=20000)
+	/*public void loginService(){
 		ref.authWithPassword(email, fbPassword, new AuthResultHandler() {
 			
 			@Override
@@ -53,6 +53,44 @@ public class LoginService {
 				}
 			}
 		});
+	}*/
+
+//	@Scheduled(fixedDelay=200000)
+	public void postDataToELK(){
+		ref.authWithPassword(email, fbPassword,new AuthResultHandler() {
+			@Override
+			public void onAuthenticated(AuthData authData) {
+				fetchUsersNotfyService.postDataToELK();
+
+			}
+
+			@Override
+			public void onAuthenticationError(FirebaseError firebaseError) {
+				log.error("Invalid Credentials.... You aren't allowed to do this!");
+
+			}
+		});
+
 	}
+
+	@Scheduled(fixedDelay=200000)
+	public void scrubData(){
+		ref.authWithPassword(email, fbPassword,new AuthResultHandler() {
+			@Override
+			public void onAuthenticated(AuthData authData) {
+				fetchUsersNotfyService.scrubData();
+
+			}
+
+			@Override
+			public void onAuthenticationError(FirebaseError firebaseError) {
+				log.error("Invalid Credentials.... You aren't allowed to do this!");
+
+			}
+		});
+
+	}
+
+
 
 }
